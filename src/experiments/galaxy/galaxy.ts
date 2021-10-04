@@ -30,7 +30,7 @@ const parameters = {
     radius: 5,
     spin: 1.15,
     randomness: 0.29,
-    randomnessPower: 3,
+    randomnessPower: 4.8,
     insideColor: '#ff6030',
     outsideColor: '#1b3984',
     bloomThreshold: 0,
@@ -40,8 +40,8 @@ const parameters = {
 
     starColorA: '#ffffff',
     starColorB: '#c300ff',
-    starColorC: '#00ff19',
-    starColorD: '#1b3984',
+    starColorC: '#efff00',
+    starColorD: '#ff0e00',
 }
 
 let points: THREE.Points
@@ -50,10 +50,6 @@ let geometry: THREE.BufferGeometry
 let starGeometry: THREE.BufferGeometry
 let material: THREE.PointsMaterial
 let starMaterial: THREE.PointsMaterial
-
-// add axe helpers
-// const axesHelper = new THREE.AxesHelper(5)
-// scene.add(axesHelper)
 
 const generateGalaxy = () => {
 
@@ -158,10 +154,9 @@ const generateGalaxy = () => {
 
     starMaterial = new THREE.PointsMaterial({
         color: 0xffffff,
-        size: 0.5,
+        size: 0.4,
         sizeAttenuation: false,
         depthWrite: false,
-        blending: THREE.AdditiveBlending,
         vertexColors: true,
     })
     starPoints = new THREE.Points(starGeometry, starMaterial)
