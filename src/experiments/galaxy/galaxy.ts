@@ -24,12 +24,13 @@ light.position.set(0, 0, 10)
 scene.add(light)
 
 const parameters = {
-    starsCount: 1000,
+    starsCount: 16000,
     count: 9000,
     branches: 7,
     radius: 5,
     spin: 1.15,
     randomness: 0.29,
+    randomnessPower: 3,
     insideColor: '#ff6030',
     outsideColor: '#1b3984',
     bloomThreshold: 0,
@@ -79,9 +80,14 @@ const generateGalaxy = () => {
         const spinAngle = radius * parameters.spin
         const branchAngle = (i % parameters.branches) / parameters.branches * Math.PI * 2
 
-        positions[i3] = Math.cos(branchAngle + spinAngle) * radius + Math.random() * parameters.randomness
-        positions[i3 + 1] = Math.random() * 0.25
-        positions[i3 + 2] = Math.sin(branchAngle + spinAngle) * radius + Math.random() * parameters.randomness
+        const randomX = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : - 1) * parameters.randomness * radius
+        const randomY = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : - 1) * parameters.randomness * radius
+        const randomZ = Math.pow(Math.random(), parameters.randomnessPower) * (Math.random() < 0.5 ? 1 : - 1) * parameters.randomness * radius
+
+
+        positions[i3    ] = Math.cos(branchAngle + spinAngle) * radius + randomX
+        positions[i3 + 1] = randomY
+        positions[i3 + 2] = Math.sin(branchAngle + spinAngle) * radius + randomZ
 
         // Color
         const mixedColor = colorInside.clone()
@@ -180,13 +186,25 @@ let composer = new EffectComposer( renderer );
 composer.addPass( renderScene );
 composer.addPass( bloomPass );
 
+// imports stats.js commonjs
+// import Stats from 'stats-js'
+// // add fps counter 
+// var stats = new Stats();
+// stats.showPanel( 1 ); // 0: fps, 1: ms, 2: mb, 3+: custom
+// document.body.appendChild( stats.dom );
+
 var gui = new dat.GUI();
+
+gui.remember(gui);
+
 gui.add(parameters, 'count', 0, 100000).onChange(generateGalaxy)
 gui.add(parameters, 'starsCount', 0, 100000).onChange(generateGalaxy)
 gui.add(parameters, 'branches', 0, 30, 1).onChange(generateGalaxy)
 gui.add(parameters, 'radius', 10, 50).onChange(generateGalaxy)
 gui.add(parameters, 'spin', 0, 10, 0.005).onChange(generateGalaxy)
 gui.add(parameters, 'randomness', 0, 1, 0.01).onChange(generateGalaxy)
+gui.add(parameters, 'randomnessPower').min(1).max(10).step(0.001).onFinishChange(generateGalaxy)
+
 gui.addColor(parameters, 'insideColor').onFinishChange(generateGalaxy)
 gui.addColor(parameters, 'outsideColor').onFinishChange(generateGalaxy)
 
@@ -227,7 +245,7 @@ const render = () => {
     requestAnimationFrame(render)
 
     geometry.rotateY(0.005)
-    starGeometry.rotateY(0.002)
+    starGeometry.rotateY(0.004)
     controls.update()
     composer.render()
 }
@@ -237,7 +255,8 @@ const sizes = {
     width: window.innerWidth,
     height: window.innerHeight
 }
-
+renderer.setSize(sizes.width, sizes.height)
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 window.addEventListener('resize', () =>
 {
     // Update sizes
