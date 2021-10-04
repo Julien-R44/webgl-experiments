@@ -27,7 +27,7 @@ const sceneObjects: SceneObject[] = [];
 
 
 const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
-const sphereGeometry = new THREE.SphereGeometry(1, 32, 32);
+const sphereGeometry = new THREE.SphereGeometry(1, 12, 12);
 const cylinderGeometry = new THREE.CylinderGeometry(1, 1, 1, 32);
 const torusGeometry = new THREE.TorusGeometry(1, 0.3, 32, 100);
 const torusKnotGeometry = new THREE.TorusKnotGeometry(1, 0.3, 100, 16);
