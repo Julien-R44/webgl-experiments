@@ -8,9 +8,12 @@
   },
   "dependencies": {
     "@types/dat.gui": "^0.7.7",
+    "cannon-es": "^0.18.0",
     "dat.gui": "^0.7.7",
     "gsap": "^3.8.0",
+    "oimo": "^1.0.9",
     "simplex-noise": "^3.0.0",
+    "stats.js": "^0.17.0",
     "three": "^0.127.0",
     "troisjs": "^0.3.1",
     "vue": "^3.0.11"
