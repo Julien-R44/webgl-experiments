@@ -3,6 +3,13 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { SceneUtils } from 'three/examples/jsm/utils/SceneUtils.js'
 import * as dat from 'dat.gui'
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+import { SavePass } from 'three/examples/jsm/postprocessing/SavePass.js';
+import { SAOPass } from 'three/examples/jsm/postprocessing/SAOPass.js';
+import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js';
+import { BlendShader } from 'three/examples/jsm/shaders/BlendShader.js';
 
 /*
     Globals
@@ -20,6 +27,13 @@ function gradTexture(color) {
     texture.needsUpdate = true;
     return texture;
 }
+
+const parameters = {
+    shuffleAnimationDuration: 0.2,
+    blendRatio: 0.8
+}
+
+let movesDones = []
 
 // basic threejs setup
 const scene = new THREE.Scene()
@@ -60,6 +74,42 @@ scene.add(back);
 camera.position.set(7, 7, 7)
 camera.lookAt(0, 0, 0)
 
+// Post-processing inits
+const composer = new EffectComposer(renderer);
+
+// render pass
+const renderPass = new RenderPass(scene, camera);
+
+const renderTargetParameters = {
+	minFilter: THREE.LinearFilter,
+	magFilter: THREE.LinearFilter,
+	stencilBuffer: false
+};
+
+// save pass
+const savePass = new SavePass(
+	new THREE.WebGLRenderTarget(
+		document.body.clientWidth,
+		document.body.clientHeight,
+		renderTargetParameters
+	)
+);
+
+// blend pass
+const blendPass = new ShaderPass(BlendShader, "tDiffuse1");
+blendPass.uniforms["tDiffuse2"].value = savePass.renderTarget.texture;
+blendPass.uniforms["mixRatio"].value = parameters.blendRatio;
+
+// output pass
+const outputPass = new ShaderPass(CopyShader);
+outputPass.renderToScreen = true;
+
+// adding passes to composer
+composer.addPass(renderPass);
+composer.addPass(blendPass);
+composer.addPass(savePass);
+composer.addPass(outputPass);
+
 
 let allCubes: THREE.Mesh[] = []
 const generateRubiks = async () => {
@@ -67,9 +117,11 @@ const generateRubiks = async () => {
 
     allCubes = []
     const rubiksSize = 4
-    const spacing = 1.2
+    const spacing = 1.1
 
-    var colours = [0xC41E3A, 0x009E60, 0x0051BA, 0xFF5800, 0xFFD500, 0xFFFFFF],
+    // 14f7ff
+    // red, green, blue
+    var colours = [0xC41E3A, 0x88ea00, 0x14f7ff, 0xFF5800, 0xFFD500, 0xFFFFFF],
         faceMaterials = colours.map(function (c) {
             return new THREE.MeshBasicMaterial({ color: c });
         })
@@ -78,6 +130,8 @@ const generateRubiks = async () => {
         for (let j = 0; j < rubiksSize; j++) {
             for (let k = 0; k < rubiksSize; k++) {
                 const cube = new THREE.Mesh(geometry, faceMaterials)
+                cube.castShadow = true
+                cube.receiveShadow = true
 
                 var positionOffset = (rubiksSize - 1) / 2;
 
@@ -139,7 +193,7 @@ function randomInt(min: number, max: number) {
     return Math.floor(Math.random() * (max - min + 1) + min);
   }
 
-const rotate = (cube: THREE.Mesh, axis: 'x' | 'y' | 'z', direction: number) => {
+const rotate = (cube: THREE.Mesh, axis: 'x' | 'y' | 'z', direction: number, addToMoves = true) => {
 
     function randomAxis() {
         return ['x', 'y', 'z'][randomInt(0,2)];
@@ -156,37 +210,44 @@ const rotate = (cube: THREE.Mesh, axis: 'x' | 'y' | 'z', direction: number) => {
     activeGroup = group
     pivot.rotation.set(0, 0, 0)
     pivot.updateMatrixWorld()
-    scene.add(pivot)
+    // scene.add(pivot)
 
-    activeGroup.forEach(c => {
+    group.forEach(c => {
         pivot.attach(c)
     })
 
+    if (addToMoves) {
+
+        movesDones.push({
+            cube,
+            axis,
+            direction
+        })
+    }
+
     return gsap.gsap.to(pivot.rotation, {
         [axis]: Math.PI / 2 * direction,
-        duration: 0.3,
+        duration: parameters.shuffleAnimationDuration,
         ease: gsap.Power3.easeOut,
     }).then(() => {
         pivot.updateMatrixWorld();
-        scene.remove(pivot)
-        // pivot
-
         group.forEach(function(cube) {
-            cube.updateMatrixWorld();
-            
-            var position = cube.position.clone();
-            cube.position.set(position.x, position.y, position.z);
-            cube.updateMatrixWorld();
-            // cube.position = cube.position)
-            cube.position.applyMatrix4(pivot.matrixWorld);
-            scene.attach(cube)        
+            scene.attach(cube)
         })
-        // pivot.remove(...pivot.children)
     })
 }
 
 const gui = new dat.GUI()
 var obj = {
+    Resolve: async function() {
+        const moves = [...movesDones].reverse()
+        for (const move of moves) {
+            await rotate(move.cube, move.axis, -move.direction, false)
+        }
+
+        movesDones = []
+    },
+
     Shuffle: async function () {
         function randomAxis() {
             return ['x', 'y', 'z'][randomInt(0,2)];
@@ -202,13 +263,18 @@ var obj = {
   
 
           for (let i = 0; i < randomInt(20, 30); i++) {
-
             await rotate(getRandomCube(), randomAxis(), randomDirection())
           }
     }
 };
 
 gui.add(obj, 'Shuffle');
+gui.add(obj, 'Resolve');
+
+gui.add(parameters, 'shuffleAnimationDuration').min(0).max(3).step(0.1)
+gui.add(parameters, 'blendRatio').min(0).max(0.99).step(0.01).onChange(() => {
+    blendPass.uniforms["mixRatio"].value = parameters.blendRatio
+})
 
 
 
@@ -216,7 +282,8 @@ gui.add(obj, 'Shuffle');
 const render = () => {
     requestAnimationFrame(render)
     controls.update()
-    renderer.render(scene, camera)
+    // renderer.render(scene, camera)
+    composer.render()
 
     // allCubes.forEach(cube => {
     //     cube.position.y += Math.sin(Date.now() / 1000) * 0.01

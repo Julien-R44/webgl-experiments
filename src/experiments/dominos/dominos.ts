@@ -6,10 +6,14 @@ import { BufferGeometry, CatmullRomCurve3, Euler, Vector3 } from 'three'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { SAOPass } from 'three/examples/jsm/postprocessing/SAOPass.js';
+import * as gsap from 'gsap'
 
 /**
  * Debug
  */
+const cameraTarget = new THREE.Object3D()
+
+let runStarted = false
 let renderer: THREE.WebGLRenderer;
 let scene: THREE.Scene
 let camera: THREE.Camera
@@ -257,8 +261,34 @@ const createDomino = (position: Vector3, rotation: Euler) => {
     const boxMaterial = new THREE.MeshPhongMaterial({
         map: basicTexture(1)
     })
+
     const mesh = new THREE.Mesh(boxGeometry, boxMaterial)
-    mesh.scale.set(width, height, depth)
+    // mesh.scale.set(width, height, depth)
+    mesh.scale.set(width * 0.1, height * 0.1, depth * 0.1)
+    // create random euler rotation
+    const randomRotation = new THREE.Euler(
+        Math.random() * Math.PI * 2,
+        Math.random() * Math.PI * 2,
+        Math.random() * Math.PI * 2
+    )
+
+    mesh.rotation.set(randomRotation.x, randomRotation.y, randomRotation.z)
+
+    gsap.gsap.to(mesh.scale, {
+        x: width,
+        y: height,
+        z: depth,
+        ease: "power1.inOut",
+    })
+
+    gsap.gsap.to(mesh.rotation, {
+        duration: Math.random() * 0.5,
+        x: rotation.x,
+        y: rotation.y,
+        z: rotation.z,
+    })
+
+
     mesh.rotation.copy(rotation)
     mesh.position.copy(position)
     mesh.castShadow = true
@@ -286,11 +316,14 @@ const createDomino = (position: Vector3, rotation: Euler) => {
 }
 
 //  generate cubes along line geometry
-function generateCubesAlongLine(lineGeometry: BufferGeometry) {
+async function generateCubesAlongLine(lineGeometry: BufferGeometry) {
 
     const points = curve.getSpacedPoints(curve.getLength() / 2)
     for (let i = 0; i < points.length; i++) {
 
+
+        if (i !== 0)
+            await new Promise(resolve => setTimeout(resolve, 100))
         const domino = createDomino(
             new THREE.Vector3(
                 points[i].x,
@@ -312,10 +345,12 @@ function generateCubesAlongLine(lineGeometry: BufferGeometry) {
         const mixedColor = red.clone().lerp(green, i / points.length)
 
         domino.mesh.material.color = mixedColor
-    }   
+    }
 
     setTimeout(() => {
+        // console.log('impulse')
         (objectsToUpdate[0].body as CANNON.Body).applyLocalForce(new CANNON.Vec3(0, 0, 40), new CANNON.Vec3(0, 2, 0))
+        runStarted = true
     }, 1000)
 }
 
@@ -348,7 +383,26 @@ function render() {
         object.mesh.quaternion.copy(object.body.quaternion)
     }
 
-        // calculate centroid of dominos
+
+    if (runStarted) {
+        // find object with highest velocity
+        let highestVelocity = 0
+        let highestVelocityObject = null
+        for (const object of objectsToUpdate) {
+            const velocity = object.body.velocity.length()
+            if (velocity > highestVelocity && velocity > 0.5) {
+                highestVelocity = velocity
+                highestVelocityObject = object
+            }
+        }
+
+        if (highestVelocityObject) {
+            cameraTarget.position.lerp(highestVelocityObject.mesh.position, 0.1)
+        }
+
+
+        camera.lookAt(cameraTarget.position)
+    } else {
         const centroid = new THREE.Vector3()
         const num = objectsToUpdate.length
         for (let i = 0; i < num; i++) {
@@ -356,11 +410,13 @@ function render() {
         }
 
         centroid.divideScalar(num)
+        if (!isNaN(centroid.y)) {
+            cameraTarget.position.lerp(centroid, 0.1)
+        }
 
-        camera.lookAt(centroid)
+        camera.lookAt(cameraTarget.position)
 
-
-    // composer.render()
+    }
     let activeCamera = camera
     if (!hasFinish) {
         activeCamera = firstCamera
@@ -378,19 +434,19 @@ function animate() {
 const gui = new dat.GUI()
 var obj = {
     add: async function () {
-        console.log("clicked")
+        // console.log("clicked")
 
         for (let i = 0; i < 550; i++) {
 
             await new Promise(resolve => setTimeout(resolve, 100))
             createDomino(
-                new THREE.Vector3(0, 50, 0), 
+                new THREE.Vector3(0, 50, 0),
                 new THREE.Euler(Math.random() * 360, Math.random() * 360, Math.random() * 360)
             )
         }
     },
 
-    createForce: function() {
+    createForce: function () {
         // world.
     }
 };
