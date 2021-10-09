@@ -108,6 +108,7 @@ export abstract class Experiment {
     this.composer.addPass(bloomPass)
 
     const bloomFolder = this.gui.addFolder('Bloom')
+    bloomFolder.add(bloomPass, 'enabled')
     bloomFolder.add(this.guiParams, 'exposure', 0.1, 2).onChange((value) => {
       this.renderer.toneMappingExposure = Math.pow(value, 4.0)
     })
