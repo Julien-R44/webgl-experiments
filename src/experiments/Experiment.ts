@@ -4,10 +4,17 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import dat from 'dat.gui'
+import { SAOPass } from 'three/examples/jsm/postprocessing/SAOPass.js'
+import { gradTexture } from '../utils'
 
 interface ExperimentParameters {
   withOrbitControls?: boolean
   withBloomPass?: boolean
+  withSaoPass?: boolean
+  withIcoBackground?: boolean
+  cameraOptions?: {
+    far: number
+  }
 }
 
 export abstract class Experiment {
@@ -22,7 +29,7 @@ export abstract class Experiment {
   guiParams: any
 
   public constructor(args: ExperimentParameters = {}) {
-    this.createScene()
+    this.createScene(args)
 
     this.gui = new dat.GUI()
 
@@ -31,11 +38,20 @@ export abstract class Experiment {
     if (args.withOrbitControls) {
       this.createOrbitControls()
     }
+
+    if (args.withIcoBackground) {
+      this.addIcoBackground()
+    }
   }
 
-  private createScene(): void {
+  private createScene(args: ExperimentParameters): void {
     this.scene = new THREE.Scene()
-    this.camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000)
+    this.camera = new THREE.PerspectiveCamera(
+      90,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      args.cameraOptions?.far || 1000
+    )
     this.renderer = new THREE.WebGLRenderer()
     this.renderer.setSize(window.innerWidth, window.innerHeight)
     document.body.appendChild(this.renderer.domElement)
@@ -51,8 +67,9 @@ export abstract class Experiment {
     this.controls = new OrbitControls(this.camera, this.renderer.domElement)
     const onDocumentMouseMove = (event: MouseEvent) => {
       event.preventDefault()
-      this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1
-      this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
+      const rect = this.renderer.domElement.getBoundingClientRect()
+      this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
+      this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
     }
     document.addEventListener('mousemove', onDocumentMouseMove, false)
   }
@@ -98,15 +115,36 @@ export abstract class Experiment {
           bloomPass.radius = Number(value)
         })
     }
+
+    if (args.withSaoPass) {
+      this.composer.addPass(new SAOPass(this.scene, this.camera))
+    }
+  }
+
+  private addIcoBackground() {
+    const gem = new THREE.IcosahedronGeometry(3000, 2)
+    const back = new THREE.Mesh(
+      gem,
+      new THREE.MeshBasicMaterial({
+        map: gradTexture([
+          [0.75, 0.6, 0.4, 0.25],
+          ['#1B1D1E', '#3D4143', '#72797D', '#b0babf'],
+        ]),
+        side: THREE.BackSide,
+        depthWrite: false,
+        fog: false,
+      })
+    )
+    this.scene.add(back)
   }
 
   public render(): void {
     const render = () => {
       requestAnimationFrame(render)
 
-      this.beforeRender()
-
       if (this.controls) this.controls.update()
+
+      this.beforeRender()
 
       this.composer.render()
     }
