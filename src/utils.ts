@@ -65,3 +65,11 @@ export function convertFloat32ArrayToVector3(array: ArrayLike<number>): THREE.Ve
   }
   return vecs.filter((vector) => vector.x != 0 && vector.y != 0 && vector.z != 0)
 }
+
+export function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+export function randomInt(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}

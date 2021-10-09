@@ -13,6 +13,7 @@ interface ExperimentParameters {
   defaultBloomParams?: any
   withSaoPass?: boolean
   withIcoBackground?: boolean
+  icoBackground?: [number[], string[]]
   cameraOptions?: {
     far: number
   }
@@ -41,7 +42,7 @@ export abstract class Experiment {
     }
 
     if (args.withIcoBackground) {
-      this.addIcoBackground()
+      this.addIcoBackground(args)
     }
   }
 
@@ -124,21 +125,20 @@ export abstract class Experiment {
       })
   }
 
-  private addIcoBackground() {
+  private addIcoBackground(args: ExperimentParameters) {
     const gem = new THREE.IcosahedronGeometry(3000, 2)
-    const back = new THREE.Mesh(
-      gem,
-      new THREE.MeshBasicMaterial({
-        map: gradTexture([
-          [0.75, 0.6, 0.4, 0.25],
-          ['#1B1D1E', '#3D4143', '#72797D', '#b0babf'],
-        ]),
-        side: THREE.BackSide,
-        depthWrite: false,
-        fog: false,
-      })
-    )
-    this.scene.add(back)
+    const params = args.icoBackground || [
+      [0.75, 0.6, 0.4, 0.25],
+      ['#1B1D1E', '#3D4143', '#72797D', '#b0babf'],
+    ]
+    const material = new THREE.MeshBasicMaterial({
+      map: gradTexture(params),
+      side: THREE.BackSide,
+      depthWrite: false,
+      fog: false,
+    })
+
+    this.scene.add(new THREE.Mesh(gem, material))
   }
 
   public render(): void {
