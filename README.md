@@ -9,10 +9,10 @@ npm run dev
 ```
 And now access your localhost:3000.
 
-<p align="left">
-  <img src="https://raw.githubusercontent.com/Julien-R44/webgl-experiments/main/src/experiments/galaxy/Capture.PNG" width="325">
-  <img src="https://raw.githubusercontent.com/Julien-R44/webgl-experiments/main/src/experiments/shaders/sparks/capture.png" width="270">
-  <img src="https://raw.githubusercontent.com/Julien-R44/webgl-experiments/main/src/experiments/floating/Capture.PNG" alt="drawing" width="270"/>
-  <img src="https://raw.githubusercontent.com/Julien-R44/webgl-experiments/main/src/experiments/rubiks/capture.PNG" width="185">
-  <img src="https://raw.githubusercontent.com/Julien-R44/webgl-experiments/main/src/experiments/dominos/capture.PNG" alt="drawing" width="420"/>
-</p>
+<img src="https://raw.githubusercontent.com/Julien-R44/webgl-experiments/main/images/galaxy.PNG" width="30%" />
+<img src="https://raw.githubusercontent.com/Julien-R44/webgl-experiments/main/images/floating.PNG" width="30%" />
+<img src="https://raw.githubusercontent.com/Julien-R44/webgl-experiments/main/images/dominos.PNG" width="30%" />
+<img src="https://raw.githubusercontent.com/Julien-R44/webgl-experiments/main/images/sparks.png" width="30%" />
+<img src="https://raw.githubusercontent.com/Julien-R44/webgl-experiments/main/images/noise2.png" width="30%" />
+<img src="https://raw.githubusercontent.com/Julien-R44/webgl-experiments/main/images/rubiks.PNG" width="30%" />
+
