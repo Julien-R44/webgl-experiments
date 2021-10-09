@@ -6,7 +6,7 @@ uniform vec2 u_resolution;
 uniform vec2 u_mouse;
 uniform float u_time;
 
-#define NUM_PARTICLES 80.
+#define NUM_PARTICLES 130.
 #define PARTICLE_SPEED 1.
 #define PARTICLE_BRIGHTNESS 0.003
 
