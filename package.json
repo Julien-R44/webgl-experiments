@@ -20,6 +20,7 @@
     "oimo": "^1.0.9",
     "postprocessing": "^6.23.1",
     "prettier": "^2.4.1",
+    "simplenoise": "^1.0.1",
     "simplex-noise": "^3.0.0",
     "stats.js": "^0.17.0",
     "three": "^0.127.0",
