@@ -10,6 +10,7 @@ import { gradTexture } from '../utils'
 interface ExperimentParameters {
   withOrbitControls?: boolean
   withBloomPass?: boolean
+  defaultBloomParams?: any
   withSaoPass?: boolean
   withIcoBackground?: boolean
   cameraOptions?: {
@@ -52,7 +53,7 @@ export abstract class Experiment {
       0.1,
       args.cameraOptions?.far || 1000
     )
-    this.renderer = new THREE.WebGLRenderer()
+    this.renderer = new THREE.WebGLRenderer({ antialias: true })
     this.renderer.setSize(window.innerWidth, window.innerHeight)
     document.body.appendChild(this.renderer.domElement)
 
@@ -79,46 +80,48 @@ export abstract class Experiment {
     this.composer.addPass(new RenderPass(this.scene, this.camera))
 
     if (args.withBloomPass) {
-      const bloomPass = new UnrealBloomPass(
-        new THREE.Vector2(window.innerWidth, window.innerHeight),
-        1.5,
-        0.4,
-        0.85
-      )
-      this.guiParams = {
-        exposure: 1.1,
-        bloomStrength: 1.7,
-        bloomThreshold: 0.4,
-        bloomRadius: 0.84,
-      }
-      bloomPass.threshold = this.guiParams.bloomThreshold
-      bloomPass.strength = this.guiParams.bloomStrength
-      bloomPass.radius = this.guiParams.bloomRadius
-      this.composer.addPass(bloomPass)
-
-      this.gui.add(this.guiParams, 'exposure', 0.1, 2).onChange((value) => {
-        this.renderer.toneMappingExposure = Math.pow(value, 4.0)
-      })
-
-      this.gui.add(this.guiParams, 'bloomThreshold', 0.0, 1.0).onChange((value) => {
-        bloomPass.threshold = Number(value)
-      })
-
-      this.gui.add(this.guiParams, 'bloomStrength', 0.0, 3.0).onChange((value) => {
-        bloomPass.strength = Number(value)
-      })
-
-      this.gui
-        .add(this.guiParams, 'bloomRadius', 0.0, 1.0)
-        .step(0.01)
-        .onChange((value) => {
-          bloomPass.radius = Number(value)
-        })
+      this.addBloomPass(args)
     }
 
     if (args.withSaoPass) {
       this.composer.addPass(new SAOPass(this.scene, this.camera))
     }
+  }
+
+  private addBloomPass(args: ExperimentParameters) {
+    const bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      1.5,
+      0.4,
+      0.85
+    )
+    this.guiParams = args.defaultBloomParams || {
+      exposure: 1.1,
+      bloomStrength: 1.7,
+      bloomThreshold: 0.4,
+      bloomRadius: 0.84,
+    }
+    bloomPass.threshold = this.guiParams.bloomThreshold
+    bloomPass.strength = this.guiParams.bloomStrength
+    bloomPass.radius = this.guiParams.bloomRadius
+    this.composer.addPass(bloomPass)
+
+    const bloomFolder = this.gui.addFolder('Bloom')
+    bloomFolder.add(this.guiParams, 'exposure', 0.1, 2).onChange((value) => {
+      this.renderer.toneMappingExposure = Math.pow(value, 4.0)
+    })
+    bloomFolder.add(this.guiParams, 'bloomThreshold', 0.0, 1.0).onChange((value) => {
+      bloomPass.threshold = Number(value)
+    })
+    bloomFolder.add(this.guiParams, 'bloomStrength', 0.0, 3.0).onChange((value) => {
+      bloomPass.strength = Number(value)
+    })
+    bloomFolder
+      .add(this.guiParams, 'bloomRadius', 0.0, 1.0)
+      .step(0.01)
+      .onChange((value) => {
+        bloomPass.radius = Number(value)
+      })
   }
 
   private addIcoBackground() {
