@@ -4,7 +4,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "eslint:fixes": "npx eslint **/src/**/*.ts --fix"
   },
   "dependencies": {
     "@types/dat.gui": "^0.7.7",
