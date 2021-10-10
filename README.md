@@ -1,6 +1,9 @@
 # webgl-experiments
 
-Just some experiments with WebGL, GLSL Shaders, and Three.JS. Update main.ts to try differents experiments.
+[![Netlify Status](https://api.netlify.com/api/v1/badges/0a733fe9-ebe8-4383-ac28-00f88badc96f/deploy-status)](https://app.netlify.com/sites/webgl-exp/deploys)
+
+Just some experiments with WebGL, GLSL Shaders, and Three.JS. 
+Visit : [https://webgl-exp.netlify.com](https://webgl-exp.netlify.com) for seeing theses.
 
 ## Installation & usage
 ```
