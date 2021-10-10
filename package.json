@@ -4,19 +4,23 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
+    "build:dirty": "vite build",
     "serve": "vite preview",
     "eslint:fixes": "npx eslint **/src/**/*.ts --fix"
   },
   "dependencies": {
     "@types/dat.gui": "^0.7.7",
+    "@types/lodash": "^4.14.175",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
     "cannon-es": "^0.18.0",
+    "d3-delaunay": "^6.0.2",
     "dat.gui": "^0.7.7",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
     "gsap": "^3.8.0",
+    "lodash": "^4.17.21",
     "oimo": "^1.0.9",
     "postprocessing": "^6.23.1",
     "prettier": "^2.4.1",
