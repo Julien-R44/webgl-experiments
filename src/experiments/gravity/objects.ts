@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { randomFloat, randomVector } from '../../utils'
 import { Gravity } from './gravity'
+import * as gsap from 'gsap'
 
 abstract class PhysicBody {
   velocity: THREE.Vector3 = new THREE.Vector3()
