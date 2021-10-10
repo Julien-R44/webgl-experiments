@@ -1,6 +1,6 @@
 import { Experiment } from '../Experiment'
 import * as THREE from 'three'
-import { randomVector } from '../../utils'
+import { randomVector } from '../utils'
 import { Particle, GravityPoint } from './objects'
 
 export class Gravity extends Experiment {

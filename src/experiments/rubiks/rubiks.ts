@@ -5,7 +5,7 @@ import { SavePass } from 'three/examples/jsm/postprocessing/SavePass.js'
 import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js'
 import { BlendShader } from 'three/examples/jsm/shaders/BlendShader.js'
 import { Experiment } from '../Experiment'
-import { randomInt, wait } from '../../utils'
+import { randomInt, wait } from '../utils'
 
 type Direction = 1 | -1
 interface Move {

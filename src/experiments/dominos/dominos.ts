@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import * as CANNON from 'cannon-es'
 import * as gsap from 'gsap'
 import { Experiment } from '../Experiment'
-import { basicTexture, convertFloat32ArrayToVector3 } from '../../utils'
+import { basicTexture, convertFloat32ArrayToVector3 } from '../utils'
 
 class DominosExperiment extends Experiment {
   world!: CANNON.World

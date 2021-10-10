@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { randomFloat, randomVector } from '../../utils'
+import { randomFloat, randomVector } from '../utils'
 import { Gravity } from './gravity'
 import * as gsap from 'gsap'
 
