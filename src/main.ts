@@ -5,4 +5,5 @@
 // import './experiments/vapor/vapor'
 // import './experiments/shaders/shaders'
 // import './experiments/noise/noise'
-import './experiments/gravity/gravity'
+// import './experiments/gravity/gravity'
+import './experiments/fibonnaci-sphere-gen/main'

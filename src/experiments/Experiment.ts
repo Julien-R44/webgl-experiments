@@ -36,7 +36,7 @@ export abstract class Experiment {
   clock: THREE.Clock = new THREE.Clock()
   mouse: THREE.Vector2 = new THREE.Vector2()
   gui!: dat.GUI
-  stats: Stats
+  stats: Stats | undefined
   guiParams: any
 
   public constructor(args: ExperimentParameters = {}) {
@@ -157,12 +157,19 @@ export abstract class Experiment {
       0.4,
       0.85
     )
-    this.guiParams = args.defaultBloomParams || {
+
+    const defaultParams = {
       exposure: 1.1,
       bloomStrength: 1.7,
       bloomThreshold: 0.4,
       bloomRadius: 0.84,
     }
+
+    this.guiParams = {
+      ...defaultParams,
+      ...args.defaultBloomParams,
+    }
+
     bloomPass.threshold = this.guiParams.bloomThreshold
     bloomPass.strength = this.guiParams.bloomStrength
     bloomPass.radius = this.guiParams.bloomRadius
@@ -209,8 +216,10 @@ export abstract class Experiment {
 
       if (this.controls) this.controls.update()
 
-      this.stats.begin()
-      this.stats.end()
+      if (this.stats) {
+        this.stats.begin()
+        this.stats.end()
+      }
 
       this.beforeRender()
 

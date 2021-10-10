@@ -20,7 +20,7 @@ class Water extends Experiment {
   }
 
   constructor() {
-    super({ withOrbitControls: true, cameraOptions: { far: 10000 } })
+    super({ withOrbitControls: true, withFpsCounter: true, cameraOptions: { far: 10000 } })
 
     noise.seed(Math.random())
 
@@ -91,10 +91,9 @@ class Water extends Experiment {
     for (let i = 0; i < position.count * 3; i += 3) {
       const x = position.array[i]
       const y = position.array[i + 1]
-      const value =
-        noise[noiseType](x / size + speed, y / size + speed, speed) * this.parameters.amplitude
+      const value = noise[noiseType](x / size + speed, y / size + speed, speed)
 
-      position.array[i + 2] = value
+      position.array[i + 2] = value * this.parameters.amplitude
     }
     this.planeGeometry.attributes.position.needsUpdate = true
   }
