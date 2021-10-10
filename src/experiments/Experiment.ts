@@ -11,6 +11,7 @@ interface ExperimentParameters {
   withOrbitControls?: boolean
   withBloomPass?: boolean
   defaultBloomParams?: any
+  defaultSAOParams?: any
   withSaoPass?: boolean
   withIcoBackground?: boolean
   icoBackground?: [number[], string[]]
@@ -85,8 +86,35 @@ export abstract class Experiment {
     }
 
     if (args.withSaoPass) {
-      this.composer.addPass(new SAOPass(this.scene, this.camera))
+      this.addSaoPass(args)
     }
+  }
+
+  private addSaoPass(args: ExperimentParameters): void {
+    const saoPass = new SAOPass(this.scene, this.camera, false)
+
+    this.composer.addPass(saoPass)
+
+    const folder = this.gui.addFolder('SAO')
+    folder.add(saoPass, 'enabled')
+    folder
+      .add(saoPass.params, 'output', {
+        'Beauty': SAOPass.OUTPUT.Beauty,
+        'Beauty+SAO': SAOPass.OUTPUT.Default,
+        'SAO': SAOPass.OUTPUT.SAO,
+        'Depth': SAOPass.OUTPUT.Depth,
+        'Normal': SAOPass.OUTPUT.Normal,
+      })
+      .onChange((value) => (saoPass.params.output = parseInt(value)))
+    folder.add(saoPass.params, 'saoBias', -1, 1)
+    folder.add(saoPass.params, 'saoIntensity', 0, 1)
+    folder.add(saoPass.params, 'saoScale', 0, 10)
+    folder.add(saoPass.params, 'saoKernelRadius', 1, 100)
+    folder.add(saoPass.params, 'saoMinResolution', 0, 1)
+    folder.add(saoPass.params, 'saoBlur')
+    folder.add(saoPass.params, 'saoBlurRadius', 0, 200)
+    folder.add(saoPass.params, 'saoBlurStdDev', 0.5, 150)
+    folder.add(saoPass.params, 'saoBlurDepthCutoff', 0.0, 0.1)
   }
 
   private addBloomPass(args: ExperimentParameters) {
