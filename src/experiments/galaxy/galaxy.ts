@@ -195,7 +195,7 @@ class Galaxy extends Experiment {
     folder.addColor(parameters, 'starColorD').onFinishChange(generateGalaxy)
   }
 
-  override beforeRender() {
+  beforeRender() {
     this.geometry.rotateY(0.005)
     this.starGeometry.rotateY(0.004)
   }

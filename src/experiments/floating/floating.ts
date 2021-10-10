@@ -77,7 +77,7 @@ class FloatingExperiment extends Experiment {
     }
   }
 
-  override beforeRender() {
+  beforeRender() {
     const t = this.clock.getElapsedTime()
 
     this.sceneObjects.forEach((object) => {

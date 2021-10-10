@@ -77,7 +77,7 @@ class Water extends Experiment {
     this.gui.addColor(this.parameters, 'topColor')
   }
 
-  override beforeRender() {
+  beforeRender() {
     this.updateVertexPositions()
     this.updateVertexColors()
   }

@@ -1,17 +1,14 @@
 import { Experiment } from '../Experiment'
-import { BaseScene } from '../plugins/BaseScene'
 import * as THREE from 'three'
-import { wait } from '../../utils'
 import gsap from 'gsap'
 import * as iDelaunay from 'd3-delaunay'
 const Delaunay = iDelaunay.Delaunay
 
 class SphereGen extends Experiment {
   meshes: THREE.Mesh[] = []
-  abort = false
   parameters = {
     jitter: 0,
-    samples: 1500,
+    samples: 700,
     animationSpeed: 1,
   }
 
@@ -110,8 +107,6 @@ class SphereGen extends Experiment {
       const projectedZ = z / (1 - y)
 
       projectedPoints.push([projectedX, projectedZ])
-
-      if (this.abort) return
 
       const promise = gsap.to(cube.position, {
         x: projectedX,

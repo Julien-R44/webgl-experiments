@@ -226,7 +226,7 @@ class DominosExperiment extends Experiment {
     return item
   }
 
-  override beforeRender() {
+  beforeRender() {
     const elapsedTime = this.clock.getElapsedTime()
     const deltaTime = elapsedTime - this.oldElapsedTime
     this.oldElapsedTime = elapsedTime

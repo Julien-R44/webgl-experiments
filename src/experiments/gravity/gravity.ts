@@ -69,7 +69,7 @@ export class Gravity extends Experiment {
     }
   }
 
-  override beforeRender(): void {
+  beforeRender(): void {
     this.gravityPoints.forEach((gravityPoint) => gravityPoint.update())
     this.particles.forEach((particle) => particle.update())
   }
