@@ -10,6 +10,7 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
 import { SavePass } from 'three/examples/jsm/postprocessing/SavePass.js'
 import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js'
 import { BlendShader } from 'three/examples/jsm/shaders/BlendShader.js'
+import Stats from 'stats.js'
 
 interface ExperimentParameters {
   withOrbitControls?: boolean
@@ -19,6 +20,7 @@ interface ExperimentParameters {
   withSaoPass?: boolean
   withMovementBlurPass?: boolean
   withIcoBackground?: boolean
+  withFpsCounter?: boolean
   icoBackground?: [number[], string[]]
   cameraOptions?: {
     far: number
@@ -34,6 +36,7 @@ export abstract class Experiment {
   clock: THREE.Clock = new THREE.Clock()
   mouse: THREE.Vector2 = new THREE.Vector2()
   gui!: dat.GUI
+  stats: Stats
   guiParams: any
 
   public constructor(args: ExperimentParameters = {}) {
@@ -45,6 +48,7 @@ export abstract class Experiment {
 
     if (args.withOrbitControls) this.createOrbitControls()
     if (args.withIcoBackground) this.addIcoBackground(args)
+    if (args.withFpsCounter) this.addFpsCounter()
   }
 
   private createScene(args: ExperimentParameters): void {
@@ -64,6 +68,12 @@ export abstract class Experiment {
       this.camera.updateProjectionMatrix()
       this.renderer.setSize(window.innerWidth, window.innerHeight)
     })
+  }
+
+  private addFpsCounter() {
+    this.stats = new Stats()
+    this.stats.showPanel(0)
+    document.body.appendChild(this.stats.dom)
   }
 
   private createOrbitControls() {
@@ -198,6 +208,9 @@ export abstract class Experiment {
       requestAnimationFrame(render)
 
       if (this.controls) this.controls.update()
+
+      this.stats.begin()
+      this.stats.end()
 
       this.beforeRender()
 
