@@ -6,6 +6,10 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import dat from 'dat.gui'
 import { SAOPass } from 'three/examples/jsm/postprocessing/SAOPass.js'
 import { gradTexture } from '../utils'
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
+import { SavePass } from 'three/examples/jsm/postprocessing/SavePass.js'
+import { CopyShader } from 'three/examples/jsm/shaders/CopyShader.js'
+import { BlendShader } from 'three/examples/jsm/shaders/BlendShader.js'
 
 interface ExperimentParameters {
   withOrbitControls?: boolean
@@ -13,6 +17,7 @@ interface ExperimentParameters {
   defaultBloomParams?: any
   defaultSAOParams?: any
   withSaoPass?: boolean
+  withMovementBlurPass?: boolean
   withIcoBackground?: boolean
   icoBackground?: [number[], string[]]
   cameraOptions?: {
@@ -38,13 +43,8 @@ export abstract class Experiment {
 
     this.createPostProcessing(args)
 
-    if (args.withOrbitControls) {
-      this.createOrbitControls()
-    }
-
-    if (args.withIcoBackground) {
-      this.addIcoBackground(args)
-    }
+    if (args.withOrbitControls) this.createOrbitControls()
+    if (args.withIcoBackground) this.addIcoBackground(args)
   }
 
   private createScene(args: ExperimentParameters): void {
@@ -81,13 +81,36 @@ export abstract class Experiment {
     this.composer = new EffectComposer(this.renderer)
     this.composer.addPass(new RenderPass(this.scene, this.camera))
 
-    if (args.withBloomPass) {
-      this.addBloomPass(args)
+    if (args.withBloomPass) this.addBloomPass(args)
+    if (args.withSaoPass) this.addSaoPass(args)
+    if (args.withMovementBlurPass) this.addMovementBlurPass(args)
+  }
+
+  private addMovementBlurPass(args: ExperimentParameters) {
+    const renderTargetParameters = {
+      minFilter: THREE.LinearFilter,
+      magFilter: THREE.LinearFilter,
+      stencilBuffer: false,
     }
 
-    if (args.withSaoPass) {
-      this.addSaoPass(args)
-    }
+    const savePass = new SavePass(
+      new THREE.WebGLRenderTarget(
+        document.body.clientWidth,
+        document.body.clientHeight,
+        renderTargetParameters
+      )
+    )
+
+    const blendPass = new ShaderPass(BlendShader, 'tDiffuse1')
+    blendPass.uniforms['tDiffuse2'].value = savePass.renderTarget.texture
+    blendPass.uniforms['mixRatio'].value = 0
+
+    const outputPass = new ShaderPass(CopyShader)
+    outputPass.renderToScreen = true
+
+    this.composer.addPass(blendPass)
+    this.composer.addPass(savePass)
+    this.composer.addPass(outputPass)
   }
 
   private addSaoPass(args: ExperimentParameters): void {
