@@ -1,6 +1,7 @@
 import { Experiment } from '../Experiment'
 import * as THREE from 'three'
 import * as gsap from 'gsap'
+import { randomFloat, randomInt } from '../utils'
 
 enum CellState {
   LIVE = 'LIVE',
@@ -8,12 +9,31 @@ enum CellState {
 }
 
 const makeColorTransition = (src: THREE.Color, dest: THREE.Color, duration: number) => {
-  gsap.gsap.to(src, {
+  return gsap.gsap.to(src, {
     r: dest.r,
     g: dest.g,
     b: dest.b,
     duration,
   })
+}
+
+const randomHotColor = () => {
+  const majorColor = randomInt(0, 2)
+  const secondMajorColor = randomInt(0, 2)
+
+  const genColor = (idx: number) => {
+    if (majorColor === idx) {
+      return randomFloat(0.7, 0.8)
+    }
+
+    if (secondMajorColor === idx) {
+      return randomFloat(0.4, 0.5)
+    }
+
+    return randomFloat(0, 0.1)
+  }
+
+  return new THREE.Color(genColor(0), genColor(1), genColor(2))
 }
 
 class Cell {
@@ -22,16 +42,24 @@ class Cell {
   rowIndex!: number
   cellIndex!: number
 
-  changeState(state: CellState) {
+  async changeState(state: CellState) {
     this.state = state
 
     if (this.state === CellState.LIVE) {
+      if (PARAMETERS.moveUpCells) {
+        gsap.gsap.to(this.mesh.position, {
+          y: Math.random() * 3,
+        })
+      }
       makeColorTransition(
         this.mesh.material.color,
-        new THREE.Color(0xba2025),
+        PARAMETERS.randomCellColor ? randomHotColor() : new THREE.Color(PARAMETERS.cellLiveColor),
         PARAMETERS.cellTransitionDuration
       )
     } else if (this.state === CellState.DEAD) {
+      gsap.gsap.to(this.mesh.position, {
+        y: 0,
+      })
       makeColorTransition(
         this.mesh.material.color,
         new THREE.Color(0x0f0000),
@@ -42,11 +70,15 @@ class Cell {
 }
 
 const PARAMETERS = {
-  gridWidth: 100,
-  gridHeight: 100,
+  gridWidth: 50,
+  gridHeight: 50,
   cellSize: 0.5,
   cellPadding: 0.8,
   cellTransitionDuration: 0.3,
+  running: true,
+  moveUpCells: true,
+  randomCellColor: true,
+  cellLiveColor: 0x8c4444,
 }
 
 class GameOfLife extends Experiment {
@@ -64,7 +96,7 @@ class GameOfLife extends Experiment {
       withOrbitControls: true,
     })
 
-    this.camera.position.set(15, 15, 0)
+    this.camera.position.set(30, 12, 24)
     this.camera.lookAt(0, 0, 0)
 
     this.initGrid()
@@ -72,8 +104,10 @@ class GameOfLife extends Experiment {
     this.addGui()
     this.render()
 
+    document.addEventListener('pointerdown', this.onMouseDown.bind(this), false)
+
     setInterval(() => {
-      this.updateLife()
+      if (PARAMETERS.running) this.updateLife()
     }, 100)
   }
 
@@ -158,16 +192,48 @@ class GameOfLife extends Experiment {
     })
   }
 
+  getCellIntersected(mesh: THREE.Mesh): Cell | null {
+    let foundCell = null
+    this.iterateGrid((row, cell, rowIndex, cellIndex) => {
+      if (cell.mesh === mesh) foundCell = cell
+    })
+    return foundCell
+  }
+
+  onMouseDown() {
+    const raycaster = new THREE.Raycaster()
+    raycaster.setFromCamera(this.mouse, this.camera)
+    const intersects = raycaster.intersectObjects(this.scene.children)
+    if (intersects.length > 0 && intersects[0].object.type === 'Mesh') {
+      const cell = this.getCellIntersected(intersects[0].object as THREE.Mesh)
+      if (!cell) return
+      cell.changeState(cell.state === CellState.LIVE ? CellState.DEAD : CellState.LIVE)
+    }
+  }
+
   reset() {
     this.iterateGrid((row, cell, rowIndex, cellIndex) => {
       cell.changeState(CellState.DEAD)
     })
   }
 
+  resetPositionAndColors() {
+    this.iterateGrid((row, cell, rowIndex, cellIndex) => {
+      cell.changeState(cell.state)
+    })
+  }
+
   addGui() {
+    const fn = this.resetPositionAndColors.bind(this)
+
     this.gui.add(PARAMETERS, 'cellTransitionDuration').min(0).max(3)
+    this.gui.add(PARAMETERS, 'running')
+    this.gui.add(PARAMETERS, 'moveUpCells').onFinishChange(fn)
+    this.gui.add(PARAMETERS, 'randomCellColor').onFinishChange(fn)
+    this.gui.addColor(PARAMETERS, 'cellLiveColor').onFinishChange(fn)
     this.gui.add(this, 'reset')
     this.gui.add(this, 'activateRandomCells')
+    this.gui.add(this, 'updateLife')
   }
 }
 
@@ -176,3 +242,5 @@ class GameOfLife extends Experiment {
  * row is right to left
  * cell is top to bottom
  */
+
+new GameOfLife()
