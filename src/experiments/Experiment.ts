@@ -78,6 +78,7 @@ export abstract class Experiment {
 
   private createOrbitControls() {
     this.controls = new OrbitControls(this.camera, this.renderer.domElement)
+    this.controls.enableDamping = true
     const onDocumentMouseMove = (event: MouseEvent) => {
       event.preventDefault()
       const rect = this.renderer.domElement.getBoundingClientRect()
